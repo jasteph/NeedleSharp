@@ -113,8 +113,7 @@ namespace DllCheckerExperiment
                     return null;
             }
         }
-
-        static string dllPath;
+        
         public static void TempLoadAssembly(string testDllPath)
         {
             AppDomain tempDomain = AppDomain.CreateDomain("TemporaryAppDomain");

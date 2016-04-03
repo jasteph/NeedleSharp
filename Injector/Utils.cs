@@ -55,7 +55,7 @@ namespace Injector
                 string result = proc.StandardOutput.ReadToEnd();
                 return result;
             }
-            catch (Exception objException)
+            catch
             {
                 // Log the exception
             }

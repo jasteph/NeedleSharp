@@ -14,10 +14,6 @@ ICLRMetaHost* pClrMetaHost = NULL;
 ICLRRuntimeInfo* pClrRuntimeInfo = NULL;
 ICLRRuntimeHost* pClrRuntimeHost = NULL;
 
-ICLRRuntimeHost* GetRuntimeHost(LPCWSTR dotNetVersion);
-int ExecuteClrCode(ICLRRuntimeHost* host, LPCWSTR assemblyPath, LPCWSTR typeName,
-	LPCWSTR function, LPCWSTR param);
-
 //
 // Parses arguments used to invoke a managed assembly
 //
@@ -51,15 +47,15 @@ const LPCWSTR ClrArgs::DELIM = L"\t"; // delimiter
 
 DllExport void LoadManagedProject(const wchar_t * command)
 {
-	ICLRRuntimeHost* host = GetRuntimeHost(L"v4.0.30319");
+	ICLRRuntimeHost* host = GetRuntimeHost(L"v4.0.30319");	
 
 	if (host != NULL) {
 		// parse the arguments
 		ClrArgs args(command);
 
-		ExecuteClrCode(host, args.pwzAssemblyPath.c_str(), args.pwzTypeName.c_str(), args.pwzMethodName.c_str(), args.pwzArgument.c_str());
+		ExecuteClrCode(host, args.pwzAssemblyPath.c_str(), args.pwzTypeName.c_str(), args.pwzMethodName.c_str(), L"MyLibrary.dll");
 		
-		// At some point you will need to call Release(). You can do it now or during cleanup code
+		// Cleanup
 		host->Release();
 	}
 }
@@ -92,6 +88,7 @@ ICLRRuntimeHost* GetRuntimeHost(LPCWSTR dotNetVersion)
 			}
 		}
 	}
+	// Cleanup
 	if (info != NULL)
 		info->Release();
 	if (metaHost != NULL)

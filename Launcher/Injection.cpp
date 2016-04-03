@@ -46,6 +46,11 @@ BOOL InjectAndRunThenUnload(DWORD ProcessId, const char * DllName, const std::st
         return false;
     }
 
+	if (!hKernel32)
+	{
+		return false;
+	}
+
     EnsureCloseHandle Proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, ProcessId);
 
     if(!Proc)
@@ -59,6 +64,12 @@ BOOL InjectAndRunThenUnload(DWORD ProcessId, const char * DllName, const std::st
     size_t StrLength = strlen(DllName);
     LPVOID RemoteString = (LPVOID)VirtualAllocEx(Proc, NULL, StrLength,
         MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+	
+	if (!RemoteString)
+	{
+		return false;
+	}
+
     WriteProcessMemory(Proc, RemoteString, DllName, StrLength, NULL);
 
     // Start a remote thread on the targeted Process, using LoadLibraryA
@@ -228,6 +239,11 @@ DWORD CallExport(DWORD ProcId, const std::string& ModuleName, const std::string&
     size_t StrNumBytes = wcslen(ExportArgument) * sizeof(wchar_t);
     LPVOID RemoteString = (LPVOID)VirtualAllocEx(Proc, NULL, StrNumBytes,
         MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+	if (!RemoteString)
+	{
+		return false;
+	}
+
     WriteProcessMemory(Proc, RemoteString, ExportArgument, StrNumBytes, NULL);
 
     // Create a remote thread that calls the desired export

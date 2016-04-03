@@ -128,8 +128,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY "$(TargetDir)$(projectName).*" "$(SolutionDir)Build"  /s /i /y
-</Command>
+      <Command>copy "$(TargetDir)$(projectName).dll" "$(SolutionDir)Build\$(projectName)_x86.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -162,7 +161,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY "$(TargetDir)$(projectName).*" "$(SolutionDir)Build"  /s /i /y
+      <Command>REM copy "$(SolutionDir)$(Platform)\$(Configuration)\$(projectName).dll" "$(SolutionDir)Build\$(projectName)_x64.dll"
+REM XCOPY"$(SolutionDir)$(Platform)\$(Configuration)\$(projectName).*" "$(SolutionDir)Build\$(projectName)_x64.*" /s /i /y
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

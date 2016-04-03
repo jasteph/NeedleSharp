@@ -14,11 +14,24 @@ namespace Injector
 {
     class Program
     {
-        const string PROCESS_NAME = "sublime_text.exe";
-        const string ASSEMBLY_PATH = @"C:\MyLibrary.dll";
-        const string PARAM = "skype";
+        static string PROCESS_NAME = "sublime_text.exe";
+        static string ASSEMBLY_PATH = @"C:\MyLibrary.dll";
+        static string PARAM = "fuck you";
+
+
         static void Main(string[] args)
         {
+            if (args.Length < 2 || args.Length > 4)
+            {
+                Console.WriteLine("Usage: proc_name assembly_path (param)");
+                Console.ReadLine();
+                return ;
+            }
+
+            PROCESS_NAME = args[0];
+            ASSEMBLY_PATH = args[1];
+            PARAM = (args.Length == 3) ? args[2] : string.Empty;
+
             var myAssembly = Assembly.LoadFrom(ASSEMBLY_PATH);
 
             var methods = myAssembly.GetTypes()
