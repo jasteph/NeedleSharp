@@ -53,7 +53,7 @@ DllExport void LoadManagedProject(const wchar_t * command)
 		// parse the arguments
 		ClrArgs args(command);
 
-		ExecuteClrCode(host, args.pwzAssemblyPath.c_str(), args.pwzTypeName.c_str(), args.pwzMethodName.c_str(), L"MyLibrary.dll");
+		ExecuteClrCode(host, args.pwzAssemblyPath.c_str(), args.pwzTypeName.c_str(), args.pwzMethodName.c_str(), args.pwzArgument.c_str());
 		
 		// Cleanup
 		host->Release();

@@ -161,8 +161,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>REM copy "$(SolutionDir)$(Platform)\$(Configuration)\$(projectName).dll" "$(SolutionDir)Build\$(projectName)_x64.dll"
-REM XCOPY"$(SolutionDir)$(Platform)\$(Configuration)\$(projectName).*" "$(SolutionDir)Build\$(projectName)_x64.*" /s /i /y
+      <Command>copy "$(SolutionDir)$(Platform)\$(Configuration)\$(projectName).dll" "$(SolutionDir)Build\$(projectName)_x64.dll"
+
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

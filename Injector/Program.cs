@@ -14,23 +14,23 @@ namespace Injector
 {
     class Program
     {
-        static string PROCESS_NAME = "sublime_text.exe";
+        static string PROCESS_NAME = "Skype.exe";
         static string ASSEMBLY_PATH = @"C:\MyLibrary.dll";
-        static string PARAM = "fuck you";
+        static string PARAM = "Helloworld.exe";
 
 
         static void Main(string[] args)
         {
-            if (args.Length < 2 || args.Length > 4)
+            if (args.Length < 1 || args.Length > 3)
             {
-                Console.WriteLine("Usage: proc_name assembly_path (param)");
+                Console.WriteLine("Usage: proc_name (param)");
                 Console.ReadLine();
                 return ;
             }
 
             PROCESS_NAME = args[0];
-            ASSEMBLY_PATH = args[1];
-            PARAM = (args.Length == 3) ? args[2] : string.Empty;
+            ASSEMBLY_PATH = @"C:\Dev\NeedleSharp\build\DomainHandler.dll";
+            PARAM = (args.Length == 2) ? args[1] : string.Empty;
 
             var myAssembly = Assembly.LoadFrom(ASSEMBLY_PATH);
 
@@ -65,7 +65,7 @@ namespace Injector
             RunProcess(launcherPath, argStr);
         }
 
-        static private string ProcessExecutablePath(Process process)
+        private static string ProcessExecutablePath(Process process)
         {
             try
             {
@@ -97,10 +97,12 @@ namespace Injector
             proc.StartInfo.FileName = filePath;
             proc.StartInfo.Arguments = arguments;
 
-            //proc.StartInfo.RedirectStandardOutput = true;
-            //proc.StartInfo.RedirectStandardError = true;
-            //proc.StartInfo.UseShellExecute = false;
-            //proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            /*
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.CreateNoWindow = true;*/
 
             proc.Start();
             Console.WriteLine("Waiting for proc to end.");

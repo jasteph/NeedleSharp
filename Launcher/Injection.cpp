@@ -80,8 +80,8 @@ BOOL InjectAndRunThenUnload(DWORD ProcessId, const char * DllName, const std::st
     WaitForSingleObject(LoadThread, INFINITE);
 
     // Get the handle of the now loaded module
-    DWORD hLibModule;
-    GetExitCodeThread(LoadThread, &hLibModule);
+    DWORDLONG hLibModule;
+    GetExitCodeThread(LoadThread, reinterpret_cast<LPDWORD>(&hLibModule));
 
     // Clean up the remote string
     VirtualFreeEx(Proc, RemoteString, 0, MEM_RELEASE);
@@ -92,7 +92,7 @@ BOOL InjectAndRunThenUnload(DWORD ProcessId, const char * DllName, const std::st
     // Unload the dll, so we can run again if we choose
     EnsureCloseHandle FreeThread = CreateRemoteThread(Proc, NULL, NULL,
         (LPTHREAD_START_ROUTINE)GetProcAddress(hKernel32, "FreeLibrary"),
-        (LPVOID)hLibModule, NULL, NULL);
+        reinterpret_cast<LPVOID>(hLibModule), NULL, NULL);
     WaitForSingleObject(FreeThread, INFINITE);
 
     return true;

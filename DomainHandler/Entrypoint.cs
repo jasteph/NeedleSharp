@@ -1,22 +1,24 @@
-﻿using System.Windows.Forms;
-using InjectionHelper;
-using System.Diagnostics;
-using System;
-using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using InjectionHelper;
 
-namespace MyLibrary
+namespace DomainHandler
 {
     public interface IAssemblyLoader
     {
         void LoadAndRun(string file);
     }
 
-    class MyClass
+    public class EntryPoint
     {
-
         [DllImport("User32.dll")]
         private static extern short GetAsyncKeyState(Keys vKey);
 
@@ -24,65 +26,50 @@ namespace MyLibrary
         public static int Main(string args)
         {
             bool firstLoaded = false;
-            MessageBox.Show($"lol3 {Process.GetCurrentProcess()}.");
+
             while (true)
             {
-
-
                 if (!firstLoaded)
                 {
                     firstLoaded = true;
-                    new OnyxDomain(args);
+                    new Domain(args);
                 }
 
                 if ((GetAsyncKeyState(Keys.F11) & 1) == 1)
                 {
-                    MessageBox.Show($"lol3 {Process.GetCurrentProcess()}.");
-                    new OnyxDomain(args);
+                    new Domain(args);
+                }
+                else if ((GetAsyncKeyState(Keys.F12) & 1) == 1)
+                {
+                    return 0;
                 }
 
                 Thread.Sleep(10);
             }
-        }
-
-        public static int ShowMessage(string message)
-        {
-            MessageBox.Show($"lol3 {Process.GetCurrentProcess()}.");
-            return 0;
-        }
-
-        public static int ShowMessage2(string message)
-        {
-            MessageBox.Show("Helloworld");
-            return 0;
         }
     }
 
     public static class DomainManager
     {
         public static AppDomain CurrentDomain { get; set; }
-        public static OnyxAssemblyLoader CurrentAssemblyLoader { get; set; }
+        public static AssemblyLoader CurrentAssemblyLoader { get; set; }
     }
 
-    public class OnyxAssemblyLoader : MarshalByRefObject, IAssemblyLoader
+    public class AssemblyLoader : MarshalByRefObject, IAssemblyLoader
     {
-        public OnyxAssemblyLoader()
+        public AssemblyLoader()
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
-
-        #region IAssemblyLoader Members
 
         public void LoadAndRun(string file)
         {
             Assembly asm = Assembly.Load(file);
             MethodInfo entry = asm.EntryPoint;
-            //object o = asm.CreateInstance(entry.Name);
-            entry.Invoke(null, null);
+            object classInstance = Activator.CreateInstance(entry.DeclaringType, null);
+            entry.Invoke(classInstance, new object[] { new string[] { "helloworld"} });
         }
-
-        #endregion
-
+        
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             if (args.Name == Assembly.GetExecutingAssembly().FullName)
@@ -93,32 +80,29 @@ namespace MyLibrary
             string fileName = Path.Combine(appDir, shortAsmName);
 
             if (File.Exists(fileName))
-            {
                 return Assembly.LoadFrom(fileName);
-            }
+
             return Assembly.GetExecutingAssembly().FullName == args.Name ? Assembly.GetExecutingAssembly() : null;
         }
     }
 
-    /// <summary> 
-    /// The actual domain object we'll be using to load and run the Onyx binaries.
-    /// </summary>
-    public class OnyxDomain
+    public class Domain
     {
         private readonly Random _rand = new Random();
-        public OnyxDomain(string assemblyName)
+
+        public Domain(string assemblyName)
         {
             try
             {
                 string appBase = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var ads = new AppDomainSetup { ApplicationBase = appBase, PrivateBinPath = appBase };
-                DomainManager.CurrentDomain = AppDomain.CreateDomain("OnyxDomain_Internal_" + _rand.Next(0, 100000),
-                                                                     null, ads);
+                var ads = new AppDomainSetup() {ApplicationBase = appBase, PrivateBinPath = appBase};
+                DomainManager.CurrentDomain = AppDomain.CreateDomain($"Domain_Internal_{_rand.Next(0, 100000)}", null,
+                    ads);
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
                 DomainManager.CurrentAssemblyLoader =
-                    (OnyxAssemblyLoader)
-                    DomainManager.CurrentDomain.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().FullName,
-                                                               typeof(OnyxAssemblyLoader).FullName);
+                    (AssemblyLoader)
+                        DomainManager.CurrentDomain.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().FullName,
+                            typeof (AssemblyLoader).FullName);
 
                 DomainManager.CurrentAssemblyLoader.LoadAndRun(
                     Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), assemblyName));
@@ -134,27 +118,28 @@ namespace MyLibrary
             }
         }
 
-        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             try
             {
-                Assembly assembly = System.Reflection.Assembly.Load(args.Name);
-                if (assembly != null)
-                    return assembly;
+                Assembly asm = Assembly.Load(args.Name);
+                if (asm != null)
+                    return asm;
             }
             catch
             {
-                // ignore load error 
+                // ignore load error
             }
 
             // *** Try to load by filename - split out the filename of the full assembly name
             // *** and append the base path of the original assembly (ie. look in the same dir)
             // *** NOTE: this doesn't account for special search paths but then that never
             //           worked before either.
-            string[] Parts = args.Name.Split(',');
-            string File = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + Parts[0].Trim() + ".dll";
+            string[] parts = args.Name.Split(',');
+            string file = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + parts[0].Trim() +
+                          ".dll";
 
-            return System.Reflection.Assembly.LoadFrom(File);
+            return Assembly.LoadFrom(file);
         }
     }
 }
